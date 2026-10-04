@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CulinaryOS | Autonomous Kitchen Control Tower</title>
+  
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Clean Modular CSS -->
+  <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+<body>
+
+  <!-- =========================================================================
+       Top Header & Navigation Bar
+       ========================================================================= -->
+  <header class="header-tower">
+    <div class="header-container">
+      <div class="brand-wrapper">
+        <div class="brand-logo-badge">🍳</div>
+        <div>
+          <div class="brand-title">
+            <span>CulinaryOS</span>
+            <span class="brand-version">v2.4 ENTERPRISE</span>
+          </div>
+          <div class="brand-sub">Autonomous Kitchen Control Tower & Multi-Agent Matrix</div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="view-tabs">
+        <button class="tab-btn active" data-tab="tower">
+          <span>🛰️</span>
+          <span>Mission Control</span>
+        </button>
+        <button class="tab-btn" data-tab="kds">
+          <span>👨‍🍳</span>
+          <span>Kitchen KDS</span>
+          <span class="tab-badge" id="badge-kds-count">0</span>
+        </button>
+        <button class="tab-btn" data-tab="radar">
+          <span>🛵</span>
+          <span>Fleet Radar</span>
+          <span class="tab-badge" id="badge-radar-count">0</span>
+        </button>
+        <button class="tab-btn" data-tab="analytics">
+          <span>📊</span>
+          <span>Analytics</span>
+        </button>
+        <button class="tab-btn" data-tab="voice">
+          <span>🎙️</span>
+          <span>Voice Studio</span>
+        </button>
+      </nav>
+
+      <!-- Quick Action Controls -->
+      <div class="header-actions">
+        <button class="btn-pill" onclick="App.createNewBlankOrder()">
+          <span>➕</span> <span>New Order</span>
+        </button>
+        <button class="btn-pill btn-pill-seed" onclick="App.openImageOrder()" title="Create a new order from a photo of a handwritten or printed order">
+          <span>📷</span> <span>Order from Image</span>
+        </button>
+        <button class="btn-pill btn-pill-seed" onclick="App.handleSeedDemo()">
+          <span>🌱</span> <span>Seed Demo</span>
+        </button>
+        <button class="btn-pill" onclick="App.handleExport()">
+          <span>📥</span> <span>Export JSON</span>
+        </button>
+        <button class="btn-pill btn-pill-reset" onclick="App.confirmResetSystem()">
+          <span>🧹</span> <span>Reset System</span>
+        </button>
+        <button id="ai-mode-toggle" class="mode-badge" onclick="App.toggleAIMode()" title="Switch between mock and live AI mode">
+          <div class="pulse-dot"></div>
+          <span id="mode-badge-text">CHECKING AI MODE…</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       KPI Summary Metric Strip
+       ========================================================================= -->
+  <section class="metrics-strip">
+    <div class="metrics-container">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="color:var(--primary);">📦</div>
+        <div class="kpi-data">
+          <span class="kpi-label">Active Orders</span>
+          <span class="kpi-value" id="kpi-active-orders">0</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="color:var(--agent-kitchen);">🍽️</div>
+        <div class="kpi-data">
+          <span class="kpi-label">Total Meals</span>
+          <span class="kpi-value" id="kpi-total-meals">0</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="color:var(--danger);">🛡️</div>
+        <div class="kpi-data">
+          <span class="kpi-label">Allergens Safeguarded</span>
+          <span class="kpi-value" id="kpi-active-allergens">0</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="color:var(--warning);">⚡</div>
+        <div class="kpi-data">
+          <span class="kpi-label">Food Waste Alerts</span>
+          <span class="kpi-value" id="kpi-waste-prevention">0</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       Main Application Views
+       ========================================================================= -->
+  <main class="main-wrapper">
+
+    <!-- One-Click Demonstration Scenarios Bar -->
+    <div class="scenario-bar">
+      <span style="font-size:0.75rem; color:var(--text-dim); display:flex; align-items:center; gap:0.3rem;">⚡ Test Scenarios:</span>
+      <button class="scenario-pill" onclick="App.runScenario('telugu_peanut')">🗣️ Telugu Peanut Allergy Order</button>
+      <button class="scenario-pill" onclick="App.runScenario('quantity_waste')">📉 Quantity Reduction & Waste Alert</button>
+      <button class="scenario-pill" onclick="App.runScenario('address_conflict')">📍 Address Ambiguity Conflict</button>
+      <button class="scenario-pill" onclick="App.runScenario('allergy_lock')">🔒 Packaging Lock on Allergen</button>
+      <button class="scenario-pill" onclick="App.runScenario('hindi_voice')">🎙️ Hindi Voice with Mild Spice</button>
+    </div>
+
+    <!-- VIEW 1: Mission Control Tower -->
+    <div class="view-panel active" id="view-tower">
+      <div class="control-grid">
+        
+        <!-- Left: 3-Agent Hub & Orders List -->
+        <div class="tower-column">
+          <!-- 3-Agent Live Visual Hub -->
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <div class="card-title">🤖 3-Agent Hub</div>
+              <span style="font-size:0.7rem; color:var(--success); font-family:var(--font-mono);">ONLINE</span>
+            </div>
+            <div class="agents-hub">
+              <div class="agent-chip customer">
+                <div class="agent-avatar">🗣️</div>
+                <div class="agent-meta">
+                  <div class="agent-role-title">Customer Interaction Agent</div>
+                  <div class="agent-status-text">Multilingual NLU, Voice & OCR</div>
+                </div>
+              </div>
+
+              <div class="agent-chip kitchen">
+                <div class="agent-avatar">👨‍🍳</div>
+                <div class="agent-meta">
+                  <div class="agent-role-title">Kitchen Production Agent</div>
+                  <div class="agent-status-text">Allergen Safety & Batch Scaling</div>
+                </div>
+              </div>
+
+              <div class="agent-chip delivery">
+                <div class="agent-avatar">🛵</div>
+                <div class="agent-meta">
+                  <div class="agent-role-title">Delivery Logistics Agent</div>
+                  <div class="agent-status-text">Conflict Resolution & ETA Windows</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Selector -->
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <div class="card-title">📋 Live Orders</div>
+              <button class="btn-pill" style="font-size:0.7rem; padding:0.2rem 0.5rem;" onclick="App.loadAllData()">↻ Refresh</button>
+            </div>
+            <div class="orders-list" id="orders-selector-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Center: Dynamic Ground Truth Matrix & Chat -->
+        <div class="center-column" id="tower-center-content">
+          <!-- Dynamically populated by renderControlTower() -->
+        </div>
+
+        <!-- Right: Lifecycle Pipeline & Immutable Audit Log -->
+        <div class="tower-column" id="tower-right-pipeline">
+          <!-- Dynamically populated by renderPipelineAndAudit() -->
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VIEW 2: Kitchen Display System (KDS) -->
+    <div class="view-panel" id="view-kds">
+      <div class="kds-header-bar">
+        <div>
+          <h2 style="font-size:1.3rem; font-weight:700;">👨‍🍳 Kitchen Display System (KDS)</h2>
+          <p style="font-size:0.8rem; color:var(--text-muted);">Real-time cook station monitor with allergen hazard isolation and recipe adjustments.</p>
+        </div>
+        <button class="btn-pill" onclick="App.renderKDS()">↻ Refresh Stations</button>
+      </div>
+      <div class="kds-grid" id="kds-orders-grid">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+
+    <!-- VIEW 3: Logistics & Fleet Radar -->
+    <div class="view-panel" id="view-radar">
+      <div class="kds-header-bar">
+        <div>
+          <h2 style="font-size:1.3rem; font-weight:700;">🛵 Logistics & Fleet Dispatch Radar</h2>
+          <p style="font-size:0.8rem; color:var(--text-muted);">Real-time route tracking, address conflict detection, and delivery handoffs.</p>
+        </div>
+      </div>
+      <div class="radar-grid">
+        <div class="map-radar-mock">
+          <div class="radar-sweep"></div>
+          <div class="fleet-pin" style="top:35%; left:42%;">
+            <div class="fleet-pin-dot">🛵</div>
+            <div class="fleet-pin-label">ORD-903 • Whitefield (On Route)</div>
+          </div>
+          <div class="fleet-pin" style="top:60%; left:65%;">
+            <div class="fleet-pin-dot" style="background:var(--primary);">🏪</div>
+            <div class="fleet-pin-label">Central Kitchen Hub</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <div class="card-title">📦 Dispatched Deliveries</div>
+            </div>
+            <div id="radar-deliveries-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: Operations Analytics -->
+    <div class="view-panel" id="view-analytics">
+      <div class="kds-header-bar">
+        <div>
+          <h2 style="font-size:1.3rem; font-weight:700;">📊 Operations & Multilingual Intelligence</h2>
+          <p style="font-size:0.8rem; color:var(--text-muted);">Deep metrics on order volume, allergen safety compliance, food waste savings, and customer languages.</p>
+        </div>
+        <button class="btn-pill" onclick="App.handleExport()">📥 Download Full Audit Log</button>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="glass-card">
+          <div class="card-title-bar">
+            <div class="card-title">🗣️ Customer Language Distribution</div>
+          </div>
+          <div id="analytics-lang-breakdown">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-title-bar">
+            <div class="card-title">⚡ Food Waste Prevention Impact</div>
+          </div>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+            When customers reduce meal counts or cancel, CulinaryOS immediately notifies kitchen stations to stop prep of excess ingredients.
+          </p>
+          <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1rem;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+              <span>Food Waste Mitigation Rate</span>
+              <span style="color:var(--success); font-weight:700;">100% Guaranteed</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>Automated Prep Adjustments</span>
+              <span style="color:var(--primary); font-family:var(--font-mono); font-weight:700;">Immediate (&lt;50ms)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 5: Multilingual Voice Studio -->
+    <div class="view-panel" id="view-voice">
+      <div class="kds-header-bar">
+        <div>
+          <h2 style="font-size:1.3rem; font-weight:700;">🎙️ Multilingual Voice Studio</h2>
+          <p style="font-size:0.8rem; color:var(--text-muted);">Record or test voice notes with native Speech-to-Text and Text-to-Speech in 5 Indian languages.</p>
+        </div>
+      </div>
+
+      <div class="voice-studio-grid">
+        <!-- Left: Audio Recorder & Custom Speak -->
+        <div class="glass-card">
+          <div class="card-title-bar">
+            <div class="card-title">🎙️ Audio Recorder & Speech Recognition</div>
+          </div>
+
+          <!-- Language Selector Pills -->
+          <div class="lang-selector-group">
+            <button class="lang-pill-btn active" data-lang="te" onclick="VoiceStudio.setLanguage('te')">Telugu (తెలుగు)</button>
+            <button class="lang-pill-btn" data-lang="hi" onclick="VoiceStudio.setLanguage('hi')">Hindi (हिन्दी)</button>
+            <button class="lang-pill-btn" data-lang="en" onclick="VoiceStudio.setLanguage('en')">English</button>
+            <button class="lang-pill-btn" data-lang="ta" onclick="VoiceStudio.setLanguage('ta')">Tamil (தமிழ்)</button>
+            <button class="lang-pill-btn" data-lang="kn" onclick="VoiceStudio.setLanguage('kn')">Kannada (ಕನ್ನಡ)</button>
+          </div>
+
+          <!-- Animated Audio Visualizer -->
+          <div class="audio-visualizer-box" id="voice-visualizer">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+          </div>
+
+          <!-- Text Area -->
+          <textarea id="voice-custom-text" class="chat-input" style="width:100%; height:100px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:0.75rem; margin-bottom:1rem; resize:none;" placeholder="Speak or type a voice note..."></textarea>
+
+          <div style="display:flex; gap:0.75rem;">
+            <button id="btn-toggle-record" class="btn-pill btn-pill-seed" style="flex:1; justify-content:center; padding:0.65rem;" onclick="VoiceStudio.toggleRecording(App.currentOrderId)">
+              🎙️ <span>Start Recording Voice Note</span>
+            </button>
+            <button class="btn-pill" style="padding:0.65rem;" onclick="VoiceStudio.finalizeAndSendVoice(App.currentOrderId)">
+              📤 Upload Note
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Presets & Audio Playback -->
+        <div class="glass-card">
+          <div class="card-title-bar">
+            <div class="card-title">⚡ Voice Note Presets</div>
+            <span style="font-size:0.75rem; color:var(--text-dim);">One-Click Quick Load</span>
+          </div>
+
+          <div class="presets-group" id="voice-presets-list">
+            <!-- Dynamically populated by VoiceStudio.renderPresets() -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- =========================================================================
+       Food Waste Prevention Confirmation Modal
+       ========================================================================= -->
+  <div class="modal-backdrop" id="modal-waste-confirm">
+    <div class="modal-window">
+      <div class="modal-title" style="color:var(--warning); display:flex; align-items:center; gap:0.4rem;">
+        <span>⚠️</span> <span>Confirm Meal Reduction & Prevent Food Waste</span>
+      </div>
+      <div class="modal-body" id="modal-waste-desc">
+        Are you sure you want to adjust the order quantity?
+      </div>
+      <div class="modal-actions">
+        <button class="btn-pill" id="btn-modal-cancel">Cancel</button>
+        <button class="btn-pill btn-pill-reset" id="btn-modal-confirm">Confirm & Notify Kitchen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       New Order from Image Modal
+       ========================================================================= -->
+  <div class="modal-backdrop" id="modal-image-order">
+    <div class="modal-window" style="max-width:520px;">
+      <div class="modal-title" style="display:flex; align-items:center; gap:0.4rem;">
+        <span>📷</span> <span>Create a new order from an image</span>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem;">
+          Upload a photo of a handwritten or printed order (dishes, quantities, delivery address, instructions).
+          PNG, JPEG or WEBP, up to 5&nbsp;MB.
+        </p>
+        <label class="image-dropzone" id="image-dropzone" for="image-order-input">
+          <img id="image-order-preview" alt="Order image preview" style="display:none;" />
+          <span id="image-dropzone-hint">📎 Click to choose a photo, take one with your camera, or drag &amp; drop here</span>
+        </label>
+        <input type="file" id="image-order-input" accept="image/png,image/jpeg,image/webp" hidden />
+        <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
+          <input type="text" id="image-order-name" class="modal-field" placeholder="Customer name (optional)" maxlength="40" style="flex:1;" />
+          <select id="image-order-lang" class="modal-field" style="max-width:130px;" title="Customer language">
+            <option value="en">English</option><option value="te">Telugu</option><option value="hi">Hindi</option>
+            <option value="ta">Tamil</option><option value="kn">Kannada</option>
+          </select>
+        </div>
+        <div id="image-order-mode-note" style="font-size:0.72rem; color:var(--text-dim); margin-top:0.6rem;"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-pill" id="btn-image-cancel" onclick="App.closeImageOrder()">Cancel</button>
+        <button class="btn-pill btn-pill-seed" id="btn-image-submit" onclick="App.submitImageOrder()" disabled>Create Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Client-side Modular Scripts -->
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/voice.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
