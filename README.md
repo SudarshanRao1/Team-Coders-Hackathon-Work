@@ -183,3 +183,9 @@ Team_Coders/
    - 1-click "Seed Demo" populates rich demonstration orders across Telugu, Hindi, and English.
    - 1-click "Reset System" cleans all orders, messages, and events back to zero.
 
+Contributors:
+
+ Hanuman 
+ Jeevan 
+ Risheaswer Reddy 
+
